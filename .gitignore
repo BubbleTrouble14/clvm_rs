@@ -1,1 +1,4 @@
 /target
+/clib/Clibclvm.xcframework
+/clib/libs
+/clib/tmp
