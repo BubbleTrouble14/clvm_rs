@@ -86,6 +86,6 @@ for RUST_TARGET in "${RUST_TARGETS[@]}"; do
 done
 
 # Generate the header file using cbindgen
-cbindgen --crate clvm --output $LIBS_DIR/clvm.h
+cbindgen --config cbindgen.toml --crate clvm --output $LIBS_DIR/clvm.h
 
 echo "✅  All .a files and the header file have been copied to the libs directory."

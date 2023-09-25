@@ -25,7 +25,7 @@ echo "✅  libclvm.a binaries built"
 
 # Use cbindgen to generate the header file
 echo "🏗  Generating header file using cbindgen..."
-cbindgen --crate clvm --output $WORKSPACE/headers/clvm.h
+cbindgen --config cbindgen.toml --crate clvm --output $WORKSPACE/headers/clvm.h
 echo "👍  Header file generated."
 
 #######################
