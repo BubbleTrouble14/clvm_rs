@@ -2,4 +2,5 @@
 /clib/Clibclvm.xcframework
 /clib/libs
 /clib/tmp
-/clib/tests/main
+# /clib/tests/main
+/clib/tests/build

@@ -12,7 +12,13 @@ if [ $? -ne 0 ]; then
 fi
 
 # Step 2: Compile the test app
-g++ -o ./tests/main ./tests/main.cpp -L ../target/aarch64-apple-darwin/release -lclvm -lpthread -ldl
+# g++ -std=c++11 -o ./tests/main ./tests/main.cpp -L ../target/aarch64-apple-darwin/release -lclvm -lpthread -ldl
+# g++ -std=c++14 -o ./tests/main ./tests/main.cpp -L ../target/aarch64-apple-darwin/release -lclvm -lgtest -lgtest_main -lpthread -ldl
+cd ./tests
+mkdir -p build
+cd build
+cmake ..
+make
 
 # Check if the GCC compilation was successful
 if [ $? -ne 0 ]; then
@@ -21,7 +27,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Step 3: Run the compiled application
-./tests/main
+./main
 
 # Check if the application ran successfully
 if [ $? -ne 0 ]; then
