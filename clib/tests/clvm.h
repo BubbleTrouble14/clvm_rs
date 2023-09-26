@@ -4,34 +4,61 @@
 #include <ostream>
 #include <new>
 
-struct ByteBuffer {
-  uint8_t *data;
-  uintptr_t len;
+typedef void *Allocator;
+typedef void *NodePtr;
+typedef uint64_t Cost;
+
+struct ResultTuple
+{
+  Cost cost;
+  void *node;
 };
 
-struct ChiaProgramResult {
-  uint64_t cost;
-  uint8_t *node;
-  uintptr_t node_len;
-  char *error;
+struct LazyNode
+{
+  Allocator *allocator;
+  NodePtr node;
 };
 
-extern "C" {
+struct Pair
+{
+  LazyNode *first;
+  LazyNode *second;
+};
 
-ByteBuffer run_clvm(const uint8_t *program_data,
-                    uintptr_t program_len,
-                    const uint8_t *args_data,
-                    uintptr_t args_len);
+extern "C"
+{
 
-void free_buffer(ByteBuffer buffer);
+  uint32_t no_unknown_ops();
 
-ChiaProgramResult run_chia_program(const uint8_t *program_data,
-                                   uintptr_t program_len,
-                                   const uint8_t *args_data,
-                                   uintptr_t args_len,
-                                   uint64_t max_cost,
-                                   uint32_t flag);
+  int64_t serialized_length(const uint8_t *program, uintptr_t length);
 
-void free_chia_program_result(ChiaProgramResult result);
+  char *run_clvm(const uint8_t *program,
+                 uintptr_t program_length,
+                 const uint8_t *args,
+                 uintptr_t args_length);
+
+  ResultTuple run_chia_program(const uint8_t *program,
+                               uintptr_t program_length,
+                               const uint8_t *args,
+                               uintptr_t args_length,
+                               Cost max_cost,
+                               uint32_t flag);
+
+  /// Free memory allocated in Rust for a pointer to a node.
+  void free_node_memory(uint8_t *ptr);
+
+  char *lazy_node_extract_atom(LazyNode *node);
+
+  Pair *lazy_node_extract_pair(LazyNode *node);
+
+  /// Free memory for ResultTuple
+  void free_result_tuple_memory(ResultTuple result);
+
+  void free_cstring_memory(char *ptr);
+
+  void free_pair(Pair *pair);
+
+  void free_lazy_node(LazyNode *node);
 
 } // extern "C"

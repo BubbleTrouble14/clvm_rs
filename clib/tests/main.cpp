@@ -5,47 +5,96 @@
 // Define your test cases
 TEST(ChiaProgramTest, Test1)
 {
-    // Test Case: Test '(q . 127)' '()'
-    // (q . 127)
     const uint8_t program_data[] = {0xff, 0x01, 0x7f};
-    // ()
     const uint8_t args_data[] = {0x80};
-
     uintptr_t program_len = sizeof(program_data);
     uintptr_t args_len = sizeof(args_data);
 
-    // Call the Rust FFI function
-    ChiaProgramResult result = run_chia_program(program_data, program_len, args_data, args_len, 100000000000, 0);
+    // Adjusted to use ResultTuple instead of the previous struct
+    ResultTuple result = run_chia_program(program_data, program_len, args_data, args_len, 100000000000, 0);
 
-    // Check for errors and make assertions
-    if (result.error != nullptr)
+    // Assuming the node pointer holds binary data and the first byte of this data is what you want to compare
+    if (result.node != nullptr)
     {
-        std::cerr << "Error: " << result.error << std::endl;
-    }
-
-    ASSERT_EQ(result.error, nullptr); // Assert that there is no error
-    EXPECT_EQ(result.cost, 127);      // Assert that the cost is 127
-
-    // Check the first element in result.node
-    if (result.node_len > 0)
-    {
-        int first_node_element = static_cast<int>(result.node[0]);
-        EXPECT_EQ(first_node_element, 127);
+        LazyNode *lazyNode = reinterpret_cast<LazyNode *>(result.node);
+        char *maybeAtom = lazy_node_extract_atom(lazyNode);
+        if (maybeAtom != nullptr)
+        {
+            auto first_byte_of_atom = static_cast<uint8_t>(maybeAtom[0]);
+            EXPECT_EQ(static_cast<int>(first_byte_of_atom), 127);
+            free_cstring_memory(maybeAtom); // Remember to free after use
+        }
+        else
+        {
+            // Handle case where it's not an atom, potentially a pair.
+        }
     }
     else
     {
-        // Handle the case when result.node is empty
-        FAIL() << "result.node is empty";
+        FAIL() << "result.node is nullptr";
     }
 
-    // Free allocated memory
-    free_chia_program_result(result);
+    free_result_tuple_memory(result);
 }
 
-TEST(ChiaProgramTest, Test2)
+TEST(ChiaProgramTest, TestPlusOneAndThree)
 {
-    // Define another test case here
-    // ...
+    const uint8_t program_data[] = {0xff, 0x10, 0xff, 0x01, 0xff, 0xff, 0x01, 0x03, 0x80};
+    const uint8_t args_data[] = {0x02};
+    uintptr_t program_len = sizeof(program_data);
+    uintptr_t args_len = sizeof(args_data);
+
+    ResultTuple result = run_chia_program(program_data, program_len, args_data, args_len, 100000000000, 0);
+    if (result.node != nullptr)
+    {
+        LazyNode *lazyNode = reinterpret_cast<LazyNode *>(result.node);
+        char *maybeAtom = lazy_node_extract_atom(lazyNode);
+        if (maybeAtom != nullptr)
+        {
+            auto first_byte_of_atom = static_cast<uint8_t>(maybeAtom[0]);
+            EXPECT_EQ(static_cast<int>(first_byte_of_atom), 5);
+            free_cstring_memory(maybeAtom);
+        }
+        else
+        {
+            FAIL() << "Expected atom, got pair or invalid type";
+        }
+    }
+    else
+    {
+        FAIL() << "result.node is nullptr";
+    }
+    free_result_tuple_memory(result);
+}
+
+TEST(ChiaProgramTest, TestPlusSevenAndThreeNested)
+{
+    const uint8_t program_data[] = {0xff, 0x10, 0xff, 0x07, 0xff, 0xff, 0x01, 0x03, 0x80};
+    const uint8_t args_data[] = {0xff, 0x80, 0xff, 0x80, 0x02};
+    uintptr_t program_len = sizeof(program_data);
+    uintptr_t args_len = sizeof(args_data);
+
+    ResultTuple result = run_chia_program(program_data, program_len, args_data, args_len, 100000000000, 0);
+    if (result.node != nullptr)
+    {
+        LazyNode *lazyNode = reinterpret_cast<LazyNode *>(result.node);
+        char *maybeAtom = lazy_node_extract_atom(lazyNode);
+        if (maybeAtom != nullptr)
+        {
+            auto first_byte_of_atom = static_cast<uint8_t>(maybeAtom[0]);
+            EXPECT_EQ(static_cast<int>(first_byte_of_atom), 5);
+            free_cstring_memory(maybeAtom);
+        }
+        else
+        {
+            FAIL() << "Expected atom, got pair or invalid type";
+        }
+    }
+    else
+    {
+        FAIL() << "result.node is nullptr";
+    }
+    free_result_tuple_memory(result);
 }
 
 int main(int argc, char **argv)

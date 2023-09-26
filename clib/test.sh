@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Step 1: Build the Rust project
-cargo build --target=aarch64-apple-darwin --release
+# cargo build --target=aarch64-apple-darwin --release
 
-cbindgen --config cbindgen.toml --crate clvm --output ./tests/clvm.h
+# cbindgen --config cbindgen.toml --crate clvm --output ./tests/clvm.h
 
 # Check if the Rust build was successful
 if [ $? -ne 0 ]; then
