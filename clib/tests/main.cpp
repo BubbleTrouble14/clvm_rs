@@ -97,6 +97,49 @@ TEST(ChiaProgramTest, TestPlusSevenAndThreeNested)
     free_result_tuple_memory(result);
 }
 
+TEST(ChiaProgramTest, TestDivmod)
+{
+    const uint8_t program_data[] = {0xff, 0x14, 0xff, 0xff, 0x01, 0x05, 0xff, 0xff, 0x01, 0x81, 0xfd, 0x80};
+    const uint8_t args_data[] = {0x80};
+    uintptr_t program_len = sizeof(program_data);
+    uintptr_t args_len = sizeof(args_data);
+
+    ResultTuple result = run_chia_program(program_data, program_len, args_data, args_len, 100000000000, 0);
+    if (result.node != nullptr)
+    {
+        LazyNode *lazyNode = reinterpret_cast<LazyNode *>(result.node);
+        Pair *maybePair = lazy_node_extract_pair(lazyNode);
+        if (maybePair != nullptr)
+        {
+            char *firstAtom = lazy_node_extract_atom(maybePair->first);
+            char *secondAtom = lazy_node_extract_atom(maybePair->second);
+            if (firstAtom != nullptr && secondAtom != nullptr)
+            {
+                auto first_byte_of_first_atom = static_cast<int8_t>(firstAtom[0]);
+                auto first_byte_of_second_atom = static_cast<int8_t>(secondAtom[0]);
+                EXPECT_EQ(static_cast<int>(first_byte_of_first_atom), -2);  // This may need to be adjusted depending on data format
+                EXPECT_EQ(static_cast<int>(first_byte_of_second_atom), -1); // This may need to be adjusted depending on data format
+                free_cstring_memory(firstAtom);
+                free_cstring_memory(secondAtom);
+            }
+            else
+            {
+                FAIL() << "Expected both atoms in the pair, but one or both are missing or invalid";
+            }
+            free_pair(maybePair);
+        }
+        else
+        {
+            FAIL() << "Expected pair, got atom or invalid type";
+        }
+    }
+    else
+    {
+        FAIL() << "result.node is nullptr";
+    }
+    free_result_tuple_memory(result);
+}
+
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
